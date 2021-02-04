@@ -71,3 +71,9 @@ ssh -i ~/.ssh/testing.pem ec2-user@ec2-3-129-19-220.us-east-2.compute.amazonaws.
 where the last argument is the Public IPv4 address.
 
 Note: there is also possible to create key pair using terraform with `resource "aws_key_pair"`.
+
+## Load balancer
+
+1. Add another subnet in a different availability zone. They need to have different cidr blocks. 
+2. Add another EC2 instance within the second subnet
+3. Add a load balancer specifying the subnets

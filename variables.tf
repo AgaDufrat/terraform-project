@@ -2,13 +2,21 @@ variable "cidr_block_range" {
   description = "CIDR block for the VPC"
   default = "10.1.0.0/16"
 }
-variable "cidr_subnet" {
+variable "cidr_subnet_one" {
   description = "CIDR block for the subnet"
-  default = "10.1.0.0/24"
+  default = "10.1.2.0/24"
 }
-variable "availability_zone" {
-  description = "availability zone to create subnet"
+variable "cidr_subnet_two" {
+  description = "CIDR block for the subnet"
+  default = "10.1.3.0/24"
+}
+variable "availability_zone_one" {
+  description = "availability zone to create first subnet"
   default = "us-east-2a"
+}
+variable "availability_zone_two" {
+  description = "availability zone to create second subnet"
+  default = "us-east-2b"
 }
 
 variable "instance_ami" {
