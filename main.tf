@@ -66,4 +66,16 @@ resource "aws_security_group" "sg_22" {
     Environment = var.environment_tag
   }
 }
+
+# EC2 INSTANCE
+
+resource "aws_instance" "test-instance" {
+  ami = var.instance_ami
+  instance_type = var.instance_type
+  subnet_id = aws_subnet.subnet_public.id
+  vpc_security_group_ids = [aws_security_group.sg_22.id]
+  key_name = "testing"
+ tags = {
+  Environment = var.environment_tag
+ }
 }
