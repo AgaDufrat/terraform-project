@@ -74,6 +74,18 @@ Note: there is also possible to create key pair using terraform with `resource "
 
 ## Load balancer
 
-1. Add another subnet in a different availability zone. They need to have different cidr blocks. 
+1. Add another subnet in a different availability zone. They need to have different cidr blocks.
 2. Add another EC2 instance within the second subnet
 3. Add a load balancer specifying the subnets
+
+## Provision with Ansible
+
+Ansible is an automation engine that automates cloud provisioning, configuration management, application deployment, intra-service orchestration. Alternatives include Puppet and Chief.
+
+It's used to install and set up a web server (e.g. Nginx, Apache), a programming language, database etc.
+
+1. Install Ansible `brew install ansible`
+2. Set up the connection. User would be "ec2-user" for Amazon Linux based AMI or "ubuntu". We also need to provide private_key with a file to our .pem file so we can ssh to execute commands.
+
+Use `apt-get` to run commands on Ubuntu and `yum` for Amazon Linux based AMI (ec2-user). Amazon Linux based AMI has Python installed, whereas you will need to install it on Ubuntu with `"sudo apt-get -qq install python -y"`.
+Some application software like nginx is available in Amazon Linux Extras and can be installed with `sudo amazon-linux-extras install nginx1 -y`. During the installation you would be asked to confirm "Is this ok [y/d/N]", hence the `-y`.

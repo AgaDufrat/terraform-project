@@ -1,2 +1,4 @@
 .terraform/plugins/registry.terraform.io/hashicorp/aws/3.14.1/darwin_amd64/terraform-provider-aws_v3.14.1_x5
 creds.tf
+terraform-project.pem
+public-key.pem

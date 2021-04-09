@@ -26,6 +26,11 @@ resource "aws_subnet" "subnet_public_one" {
     Type = "Public"
   }
 }
+//
+// resource "aws_eip" "ip" {
+//   instance   = "${aws_instance.terra-sample0.id}"
+//   depends_on = ["aws_instance.terra-sample0"]
+// }
 
 resource "aws_subnet" "subnet_public_two" {
   vpc_id = aws_vpc.vpc.id
@@ -106,19 +111,68 @@ resource "aws_instance" "test-instance_one" {
   subnet_id = aws_subnet.subnet_public_one.id
   vpc_security_group_ids = [aws_security_group.sg_22.id]
   key_name = "testing"
+
  tags = {
   Environment = var.environment_tag
  }
-}
 
+ # Provision with Ansible
+ connection {
+   private_key = file(var.private_key)
+   user = "ubuntu"
+   # need an IP address for the boxes but we don't really want them acessible (with associate_public_ip_address = true)
+   # better to add another instance with only SSH open to tunnel through that box (jumpbox server, bastion host)
+   host = self.public_ip
+ }
+
+ # Ansible requires Python to be installed on the remote machine as well as the local machine.
+ # SSH into the machine and run the command
+   provisioner "remote-exec" {
+     inline = [
+     "sudo apt-get -qq install python3.8 -y",
+     "sudo apt-get -y install nginx",
+     "sudo service nginx start",
+     ]
+   }
+ # run ansible locally
+ provisioner "local-exec" {
+   command = <<EOT
+     pwd
+   EOT
+ }
+}
+# count = 2
 resource "aws_instance" "test-instance_two" {
   ami = var.instance_ami
   instance_type = var.instance_type
   subnet_id = aws_subnet.subnet_public_two.id
   vpc_security_group_ids = [aws_security_group.sg_22.id]
   key_name = "testing"
+  associate_public_ip_address = true
+
  tags = {
   Environment = var.environment_tag
+ }
+
+ # Provision with Ansible
+ connection {
+   private_key = file(var.private_key)
+   user = "ubuntu"
+    host = self.public_ip
+ }
+
+ provisioner "remote-exec" {
+     inline = [
+     "sudo apt-get -qq install python3.8 -y",
+     "sudo apt-get -y install nginx",
+     "sudo service nginx start",
+     ]
+   }
+
+ provisioner "local-exec" {
+   command = <<EOT
+     pwd
+   EOT
  }
 }
 
@@ -144,5 +198,39 @@ resource "aws_lb" "test" {
 
   tags = {
     Environment = var.environment_tag
+  }
+}
+
+# Adds target group for lb, add instances there and point the lb to the target groups
+resource "aws_lb_target_group" "test" {
+  name        = "tf-example-lb-tg"
+  port        = 80
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = aws_vpc.vpc.id
+}
+// ERROR: Error registering targets with target group: ValidationError: The IP address 'i-09fc080c289280529' is not a valid IPv4 address
+// resource "aws_lb_target_group_attachment" "test_one" {
+//   target_group_arn = aws_lb_target_group.test.arn
+//   target_id        = aws_instance.test-instance_one.id
+//   port             = 80
+// }
+//
+// resource "aws_lb_target_group_attachment" "test_two" {
+//   target_group_arn = aws_lb_target_group.test.arn
+//   target_id        = aws_instance.test-instance_two.id
+//   port             = 80
+// }
+
+resource "aws_lb_listener" "front_end" {
+  load_balancer_arn = aws_lb.test.arn
+  port              = "80"
+  protocol          = "HTTP"
+  // ssl_policy        = "ELBSecurityPolicy-2016-08"
+  // certificate_arn   = "arn:aws:iam::187416307283:server-certificate/test_cert_rab3wuqwgja25ct3n4jdj2tzu4"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.test.arn
   }
 }
